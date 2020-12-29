@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import { createMuiTheme, Container, ThemeProvider } from "@material-ui/core";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import { createAPI } from "openweatherapi-js-sdk";
 
 import Weather from "./Weather";
 import NavBar from "./NavBar";
+
+const weatherAPI = createAPI(process.env.REACT_APP_API_KEY);
 
 export default function App() {
   const [city, setCity] = useState("Eldoret");
@@ -91,15 +94,16 @@ function handleResponse(response) {
   if (response.ok) {
     return response.json();
   } else {
-    throw new Error("Error: Location " + (response.statusText).toLowerCase());
+    throw new Error("Error: Location " + response.statusText.toLowerCase());
   }
 }
 
 function getWeather(city) {
-  return fetch(
-    `${process.env.REACT_APP_API_URL}/weather/?q=${city}&units=metric&APPID=${process.env.REACT_APP_API_KEY}`
-  )
-    .then(res => handleResponse(res))
+  return weatherAPI.weather
+    .getWeatherByCityName({
+      cityName: city,
+      units: "metric"
+    })
     .then(weather => {
       if (Object.entries(weather).length) {
         const mappedData = mapDataToWeatherInterface(weather);
@@ -109,10 +113,11 @@ function getWeather(city) {
 }
 
 function getForecast(city) {
-  return fetch(
-    `${process.env.REACT_APP_API_URL}/forecast/?q=${city}&units=metric&APPID=${process.env.REACT_APP_API_KEY}`
-  )
-    .then(res => handleResponse(res))
+  return weatherAPI.forecast
+    .getForecastByCityName({
+      cityName: city,
+      units: "metric"
+    })
     .then(result => {
       if (Object.entries(result).length) {
         const forecast = [];
